@@ -2,8 +2,9 @@
  * @jsx React.DOM
  */
 
-var React = window.React || require('react/addons');
+var React = require('react/addons');
 var TypeaheadOption = require('./option');
+var classNames = require('classnames');
 
 /**
  * Container for the options rendered as part of the autocompletion process
@@ -39,7 +40,7 @@ var TypeaheadSelector = React.createClass({
       "typeahead-selector": true
     };
     classes[this.props.customClasses.results] = this.props.customClasses.results;
-    var classList = React.addons.classSet(classes);
+    var classList = classNames(classes);
 
     var results = [];
     // CustomValue should be added to top of results list with different class name
@@ -56,14 +57,32 @@ var TypeaheadSelector = React.createClass({
     }
 
     this.props.options.forEach(function(result, i) {
-      results.push (
-        <TypeaheadOption ref={result} key={result}
-          hover={this.state.selectionIndex === results.length}
-          customClasses={this.props.customClasses}
-          onClick={this._onClick.bind(this, result)}>
-          { result }
-        </TypeaheadOption>
-      );
+      if (result.template) {
+         results.push (
+          <TypeaheadOption ref={result} key={result.item}
+            hover={this.state.selectionIndex === results.length}
+            customClasses={this.props.customClasses}
+            onClick={this._onClick.bind(this, result.item)}
+            onMouseOver={this._onMouseOver.bind(this, i)}
+            onMouseOut={this._onMouseOut.bind(this, i)}
+            >
+            { result.template }
+          </TypeaheadOption>
+        );
+      }
+      else {
+        results.push (
+          <TypeaheadOption ref={result} key={result}
+            hover={this.state.selectionIndex === results.length}
+            customClasses={this.props.customClasses}
+            onClick={this._onClick.bind(this, result)}
+            onMouseOver={this._onMouseOver.bind(this, i)}
+            onMouseOut={this._onMouseOut.bind(this, i)}
+            >
+            { result }
+          </TypeaheadOption>
+        );
+      }
     }, this);
 
 
@@ -123,6 +142,18 @@ var TypeaheadSelector = React.createClass({
 
   navUp: function() {
     this._nav(-1);
+  },
+
+  _onMouseOver: function(index) {
+    this.setState({
+      selectionIndex: index
+    });
+  },
+
+  _onMouseOut: function() {
+    this.setState({
+      selectionIndex: null
+    });
   }
 
 });

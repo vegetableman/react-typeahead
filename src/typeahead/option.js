@@ -2,7 +2,8 @@
  * @jsx React.DOM
  */
 
-var React = window.React || require('react/addons');
+var React = require('react/addons');
+var classNames = require('classnames');
 
 /**
  * A single option within the TypeaheadSelector
@@ -12,7 +13,8 @@ var TypeaheadOption = React.createClass({
     customClasses: React.PropTypes.object,
     customValue: React.PropTypes.string,
     onClick: React.PropTypes.func,
-    children: React.PropTypes.string,
+    onMouse: React.PropTypes.func,
+    children: React.PropTypes.any,
     hover: React.PropTypes.bool
   },
 
@@ -38,13 +40,13 @@ var TypeaheadOption = React.createClass({
       classes[this.props.customClasses.customAdd] = !!this.props.customClasses.customAdd;
     }
 
-    var classList = React.addons.classSet(classes);
-
+    var classList = classNames(classes);
     return (
-      <li className={classList} onClick={this._onClick}>
-        <a href="javascript: void 0;" className={this._getClasses()} ref="anchor">
-          { this.props.children }
-        </a>
+      <li className={classList}
+        onClick={this._onClick}
+        onMouseOver={this._onMouseOver}
+        onMouseOut={this._onMouseOut}>
+        {this.props.children}
       </li>
     );
   },
@@ -55,12 +57,22 @@ var TypeaheadOption = React.createClass({
     };
     classes[this.props.customClasses.listAnchor] = !!this.props.customClasses.listAnchor;
 
-    return React.addons.classSet(classes);
+    return classNames(classes);
   },
 
   _onClick: function(event) {
     event.preventDefault();
     return this.props.onClick(event);
+  },
+
+  _onMouseOver: function(event) {
+    event.preventDefault();
+    return this.props.onMouseOver(event);
+  },
+
+  _onMouseOut: function(event) {
+    event.preventDefault();
+    return this.props.onMouseOut(event);
   }
 });
 

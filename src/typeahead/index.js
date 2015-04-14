@@ -2,10 +2,11 @@
  * @jsx React.DOM
  */
 
-var React = window.React || require('react/addons');
+var React = require('react/addons');
 var TypeaheadSelector = require('./selector');
 var KeyEvent = require('../keyevent');
 var fuzzy = require('fuzzy');
+var classNames = require('classnames');
 
 /**
  * A "typeahead", an auto-completing text input
@@ -23,7 +24,10 @@ var Typeahead = React.createClass({
     defaultValue: React.PropTypes.string,
     placeholder: React.PropTypes.string,
     onOptionSelected: React.PropTypes.func,
-    onKeyDown: React.PropTypes.func
+    onKeyDown: React.PropTypes.func,
+    noFilter: React.PropTypes.bool,
+    onChange: React.PropTypes.func,
+    disabled: React.PropTypes.any
   },
 
   getDefaultProps: function() {
@@ -33,6 +37,7 @@ var Typeahead = React.createClass({
       allowCustomValues: 0,
       defaultValue: "",
       placeholder: "",
+      noFilter: false,
       onKeyDown: function(event) { return },
       onOptionSelected: function(option) { }
     };
@@ -52,9 +57,16 @@ var Typeahead = React.createClass({
   },
 
   getOptionsForValue: function(value, options) {
-    var result = fuzzy.filter(value, options).map(function(res) {
-      return res.string;
-    });
+    var result;
+
+    if (this.props.noFilter) {
+      result = options;
+    }
+    else {
+      result = fuzzy.filter(value, options).map(function(res) {
+        return res.string;
+      });
+    }
 
     if (this.props.maxVisible) {
       result = result.slice(0, this.props.maxVisible);
@@ -68,12 +80,12 @@ var Typeahead = React.createClass({
   },
 
   _hasCustomValue: function() {
-    if (this.props.allowCustomValues > 0 && 
+    if (this.props.allowCustomValues > 0 &&
       this.state.entryValue.length >= this.props.allowCustomValues &&
       this.state.visible.indexOf(this.state.entryValue) < 0) {
       return true;
     }
-    return false; 
+    return false;
   },
 
   _getCustomValue: function() {
@@ -120,15 +132,16 @@ var Typeahead = React.createClass({
   _onOptionSelected: function(option, event) {
     var nEntry = this.refs.entry.getDOMNode();
     nEntry.focus();
-    nEntry.value = option;
+    nEntry.value = option.template ? option.item: option;
     this.setState({visible: this.getOptionsForValue(option, this.props.options),
                    selection: option,
-                   entryValue: option});
-    return this.props.onOptionSelected(option, event);
+                   entryValue: nEntry.value});
+    return this.props.onOptionSelected(nEntry.value, event);
   },
 
   _onTextEntryUpdated: function() {
     var value = this.refs.entry.getDOMNode().value;
+    this.props.onChange(value);
     this.setState({visible: this.getOptionsForValue(value, this.props.options),
                    selection: null,
                    entryValue: value});
@@ -148,7 +161,7 @@ var Typeahead = React.createClass({
   _onTab: function(event) {
     var option = this.refs.sel.state.selection ?
       this.refs.sel.state.selection : (this.state.visible.length > 0 ? this.state.visible[0] : null);
-      
+
     if (option === null && this._hasCustomValue()) {
       option = this._getCustomValue();
     }
@@ -197,13 +210,13 @@ var Typeahead = React.createClass({
   render: function() {
     var inputClasses = {}
     inputClasses[this.props.customClasses.input] = !!this.props.customClasses.input;
-    var inputClassList = React.addons.classSet(inputClasses)
+    var inputClassList = classNames(inputClasses);
 
     var classes = {
       typeahead: true
     }
     classes[this.props.className] = !!this.props.className;
-    var classList = React.addons.classSet(classes);
+    var classList = classNames(classes);
 
     return (
       <div className={classList}>
@@ -213,6 +226,7 @@ var Typeahead = React.createClass({
           className={inputClassList}
           value={this.state.entryValue}
           defaultValue={this.props.defaultValue}
+          disabled={this.props.disabled}
           onChange={this._onTextEntryUpdated} onKeyDown={this._onKeyDown} />
         { this._renderIncrementalSearchResults() }
       </div>
