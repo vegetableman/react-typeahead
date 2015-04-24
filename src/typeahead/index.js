@@ -52,7 +52,9 @@ var Typeahead = React.createClass({
       entryValue: this.props.defaultValue,
 
       // A valid typeahead value
-      selection: null
+      selection: null,
+
+      showLoader: false
     };
   },
 
@@ -136,7 +138,8 @@ var Typeahead = React.createClass({
     nEntry.value = option.text ? option.text: item;
     this.setState({visible: this.getOptionsForValue(option, this.props.options),
                    selection: option,
-                   entryValue: nEntry.value});
+                   entryValue: nEntry.value,
+                   showLoader: false});
     return this.props.onOptionSelected(item, event);
   },
 
@@ -145,7 +148,9 @@ var Typeahead = React.createClass({
     this.props.onChange(value);
     this.setState({visible: this.getOptionsForValue(value, this.props.options),
                    selection: null,
-                   entryValue: value});
+                   entryValue: value,
+                   showLoader: true
+                 });
   },
 
   _onEnter: function(event) {
@@ -204,7 +209,8 @@ var Typeahead = React.createClass({
 
   componentWillReceiveProps: function(nextProps) {
     this.setState({
-      visible: this.getOptionsForValue(this.state.entryValue, nextProps.options)
+      visible: this.getOptionsForValue(this.state.entryValue, nextProps.options),
+      showLoader: false
     });
   },
 
@@ -229,9 +235,19 @@ var Typeahead = React.createClass({
           defaultValue={this.props.defaultValue}
           disabled={this.props.disabled}
           onChange={this._onTextEntryUpdated} onKeyDown={this._onKeyDown} />
+        { this._renderLoader() }
         { this._renderIncrementalSearchResults() }
       </div>
     );
+  },
+
+  _renderLoader: function() {
+    if (this.state.showLoader && this.state.entryValue.length) {
+      return this.props.loader;
+    }
+    else {
+      return null;
+    }
   },
 
   _renderHiddenInput: function() {
