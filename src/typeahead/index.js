@@ -72,6 +72,10 @@ var Typeahead = React.createClass({
       });
     }
 
+    if(!result) {
+      result = [];
+    }
+
     if (this.props.maxVisible) {
       result = result.slice(0, this.props.maxVisible);
     }
