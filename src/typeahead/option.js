@@ -43,6 +43,7 @@ var TypeaheadOption = React.createClass({
     var classList = classNames(classes);
     return (
       <li className={classList}
+        ref='option'
         onClick={this._onClick}
         onMouseOver={this._onMouseOver}
         onMouseOut={this._onMouseOut}>
