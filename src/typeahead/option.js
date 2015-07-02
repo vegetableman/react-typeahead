@@ -60,6 +60,34 @@ var TypeaheadOption = React.createClass({
     return classNames(classes);
   },
 
+  _getComputedStyle: function(el, prop) {
+    return parseInt(window.getComputedStyle(el)[prop].replace('px', ''), 10);
+  },
+
+  componentDidUpdate: function(prevProps, prevState) {
+    if(this.props.hover) {
+      var optionEl = this.refs.option.getDOMNode();
+      var listEl = optionEl.parentNode;
+      var elTop, elBottom, nodeScrollTop, nodeHeight;
+
+      elTop = (optionEl.getBoundingClientRect().top + window.pageYOffset) - (listEl.getBoundingClientRect().top + window.pageYOffset);
+      elBottom = elTop + optionEl.offsetHeight +
+        this._getComputedStyle(optionEl, 'padding-top') +
+        this._getComputedStyle(optionEl, 'padding-bottom');
+      listScrollTop = listEl.scrollTop;
+      listHeight = listEl.offsetHeight +
+        this._getComputedStyle(listEl, 'padding-top') +
+        this._getComputedStyle(listEl, 'padding-bottom')
+
+      if (elTop < 0) {
+        listEl.scrollTo(0, listScrollTop + elTop);
+      }
+      else if (listHeight < elBottom) {
+        listEl.scrollTo(0, listScrollTop + (elBottom - listHeight));
+      }
+    }
+  },
+
   _onClick: function(event) {
     event.preventDefault();
     return this.props.onClick(event);

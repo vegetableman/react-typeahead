@@ -26,6 +26,7 @@ var Typeahead = React.createClass({
     onOptionSelected: React.PropTypes.func,
     onKeyDown: React.PropTypes.func,
     noFilter: React.PropTypes.bool,
+    onEmptyFocus: React.PropTypes.func,
     onChange: React.PropTypes.func,
     disabled: React.PropTypes.any
   },
@@ -37,6 +38,7 @@ var Typeahead = React.createClass({
       allowCustomValues: 0,
       defaultValue: "",
       placeholder: "",
+      onEmptyFocus: null,
       noFilter: false,
       onKeyDown: function(event) { return },
       onOptionSelected: function(option) { }
@@ -105,7 +107,7 @@ var Typeahead = React.createClass({
 
   _renderIncrementalSearchResults: function() {
     // Nothing has been entered into the textbox
-    if (!this.state.entryValue) {
+    if (!this.state.entryValue  && !this.state.emptyFocus) {
       return "";
     }
 
@@ -154,9 +156,23 @@ var Typeahead = React.createClass({
     this.props.onChange(value);
     this.setState({visible: this.getOptionsForValue(value, this.props.options),
                    selection: null,
+                   emptyFocus: false,
                    entryValue: value,
                    showLoader: true
                  });
+  },
+
+  _onTextEntryFocus: function() {
+    var value = this.refs.entry.getDOMNode().value;
+    if(!value.length && this.props.onEmptyFocus) {
+      if (this.state.visible && this.state.visible.length) {
+        return;
+      }
+      else {
+        this.props.onEmptyFocus(value);
+        this.setState({emptyFocus: true, showLoader: true});
+      }
+    }
   },
 
   _onEnter: function(event) {
@@ -256,6 +272,7 @@ var Typeahead = React.createClass({
           value={this.state.customValue != undefined ? this.state.customValue: this.state.entryValue}
           defaultValue={this.props.defaultValue}
           disabled={this.props.disabled}
+          onFocus={this._onTextEntryFocus}
           onChange={this._onTextEntryUpdated} onKeyDown={this._onKeyDown} />
         { this._renderLoader() }
         { this._renderIncrementalSearchResults() }
@@ -264,7 +281,7 @@ var Typeahead = React.createClass({
   },
 
   _renderLoader: function() {
-    if (this.state.showLoader && this.state.entryValue.length) {
+    if (this.state.showLoader && (this.state.entryValue.length || this.state.emptyFocus)) {
       return this.props.loader;
     }
     else {
